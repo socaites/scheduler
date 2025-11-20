@@ -1,5 +1,707 @@
 <!DOCTYPE html>
-<html lang='en'>
-<head><meta charset='UTF-8'><title>BAAC Scheduler</title></head>
-<body><p>Placeholder BAAC scheduler page. Please regenerate the full version.</p></body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BAAC Shared Meeting Availability – Mon/Thu 9–5</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --baac-blue: #2563eb;
+      --baac-blue-soft: #e0edff;
+      --baac-gold: #f9b826;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      margin: 0;
+      padding: 24px;
+      color: #111827;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto 40px auto;
+    }
+    h1 { text-align: center; margin-bottom: 4px; }
+    .subtitle {
+      text-align: center;
+      margin: 0 0 20px;
+      color: #4b5563;
+      font-size: 0.95rem;
+    }
+    .tagline {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--baac-blue-soft);
+      color: #1d4ed8;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      margin-bottom: 8px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      body { padding: 16px; }
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px 18px 18px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      border: 1px solid #e5e7eb;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-title span.icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--baac-blue-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+    .hint { font-size: 0.8rem; color: #6b7280; }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 170px;
+      flex: 1;
+    }
+    label { font-size: 0.8rem; color: #374151; }
+    input[type="text"],
+    input[type="email"] {
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      outline: 2px solid var(--baac-blue-soft);
+      border-color: var(--baac-blue);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 5px;
+      text-align: center;
+    }
+    th { background: #f3f4f6; font-weight: 600; }
+    th.time-col { width: 120px; }
+    td.time-label { background: #f9fafb; font-weight: 500; }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .week-heading {
+      font-size: 0.86rem;
+      font-weight: 600;
+      margin: 10px 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .week-heading span.badge {
+      font-size: 0.7rem;
+      background: #eef2ff;
+      color: #4f46e5;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .btn-primary {
+      background: var(--baac-blue);
+      color: white;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .btn-small { padding: 4px 10px; font-size: 0.78rem; }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .status { margin-top: 6px; font-size: 0.78rem; }
+    .status.ok { color: #16a34a; }
+    .status.error { color: #b91c1c; }
+    .status.info { color: #4b5563; }
+    .responses-list {
+      max-height: 260px;
+      overflow: auto;
+      font-size: 0.78rem;
+      border-radius: 10px;
+      border: 1px dashed #e5e7eb;
+      padding: 6px 8px;
+    }
+    .response-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 5px 0;
+    }
+    .response-item:last-child { border-bottom: none; }
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .response-name { font-weight: 600; }
+    .response-meta {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+    .slots { color: #374151; margin-top: 2px; }
+    .summary-card-inner {
+      border-radius: 12px;
+      background: #f9fafb;
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      max-height: 270px;
+      overflow: auto;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .summary-table th,
+    .summary-table td {
+      border: 1px solid #e5e7eb;
+      padding: 4px 5px;
+      text-align: center;
+    }
+    .summary-table th {
+      background: #eef2ff;
+      font-weight: 600;
+    }
+    .heat-cell {
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    .summary-caption {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="pill">BAAC Scheduler · Mon & Thu · 9am–5pm</div>
+    <h1>BAAC Shared Meeting Availability</h1>
+    <p class="subtitle">
+      Help us find recurring meeting times. Select your availability on <strong>Mondays</strong> and <strong>Thursdays</strong>, Weeks 1–4.
+    </p>
+    <p class="tagline">
+      This page reads/writes to a shared Firebase Firestore collection (<code>availabilities</code>), so you can see everyone&apos;s choices.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon">👤</span>
+            Your availability
+          </div>
+          <div class="hint">Use the same name/email to update your previous entry.</div>
+        </div>
+
+        <form id="availability-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name (required)</label>
+              <input type="text" id="name" required placeholder="e.g., Alex Chen" />
+            </div>
+            <div class="form-group">
+              <label for="email">Email (optional, but helps uniqueness)</label>
+              <input type="email" id="email" placeholder="e.g., alex@baac.org" />
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-secondary btn-small" id="load-btn">↻ Load my last submission</button>
+            <span class="hint">Click this after typing your name/email to edit instead of creating duplicates.</span>
+          </div>
+
+          <div id="matrix">
+            <!-- Weeks 1–4, Mon/Thu 9–5 -->
+            <!-- Week 1 -->
+            <div class="week-heading">
+              Week 1 <span class="badge">1st week of month</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th class="time-col">Time</th><th>Monday</th><th>Thursday</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="time-label">9:00–10:00</td><td><input type="checkbox" data-slot="w1-mon-9" /></td><td><input type="checkbox" data-slot="w1-thu-9" /></td></tr>
+                <tr><td class="time-label">10:00–11:00</td><td><input type="checkbox" data-slot="w1-mon-10" /></td><td><input type="checkbox" data-slot="w1-thu-10" /></td></tr>
+                <tr><td class="time-label">11:00–12:00</td><td><input type="checkbox" data-slot="w1-mon-11" /></td><td><input type="checkbox" data-slot="w1-thu-11" /></td></tr>
+                <tr><td class="time-label">12:00–1:00</td><td><input type="checkbox" data-slot="w1-mon-12" /></td><td><input type="checkbox" data-slot="w1-thu-12" /></td></tr>
+                <tr><td class="time-label">1:00–2:00</td><td><input type="checkbox" data-slot="w1-mon-13" /></td><td><input type="checkbox" data-slot="w1-thu-13" /></td></tr>
+                <tr><td class="time-label">2:00–3:00</td><td><input type="checkbox" data-slot="w1-mon-14" /></td><td><input type="checkbox" data-slot="w1-thu-14" /></td></tr>
+                <tr><td class="time-label">3:00–4:00</td><td><input type="checkbox" data-slot="w1-mon-15" /></td><td><input type="checkbox" data-slot="w1-thu-15" /></td></tr>
+                <tr><td class="time-label">4:00–5:00</td><td><input type="checkbox" data-slot="w1-mon-16" /></td><td><input type="checkbox" data-slot="w1-thu-16" /></td></tr>
+              </tbody>
+            </table>
+
+            <!-- Week 2 -->
+            <div class="week-heading">
+              Week 2 <span class="badge">2nd week of month</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th class="time-col">Time</th><th>Monday</th><th>Thursday</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="time-label">9:00–10:00</td><td><input type="checkbox" data-slot="w2-mon-9" /></td><td><input type="checkbox" data-slot="w2-thu-9" /></td></tr>
+                <tr><td class="time-label">10:00–11:00</td><td><input type="checkbox" data-slot="w2-mon-10" /></td><td><input type="checkbox" data-slot="w2-thu-10" /></td></tr>
+                <tr><td class="time-label">11:00–12:00</td><td><input type="checkbox" data-slot="w2-mon-11" /></td><td><input type="checkbox" data-slot="w2-thu-11" /></td></tr>
+                <tr><td class="time-label">12:00–1:00</td><td><input type="checkbox" data-slot="w2-mon-12" /></td><td><input type="checkbox" data-slot="w2-thu-12" /></td></tr>
+                <tr><td class="time-label">1:00–2:00</td><td><input type="checkbox" data-slot="w2-mon-13" /></td><td><input type="checkbox" data-slot="w2-thu-13" /></td></tr>
+                <tr><td class="time-label">2:00–3:00</td><td><input type="checkbox" data-slot="w2-mon-14" /></td><td><input type="checkbox" data-slot="w2-thu-14" /></td></tr>
+                <tr><td class="time-label">3:00–4:00</td><td><input type="checkbox" data-slot="w2-mon-15" /></td><td><input type="checkbox" data-slot="w2-thu-15" /></td></tr>
+                <tr><td class="time-label">4:00–5:00</td><td><input type="checkbox" data-slot="w2-mon-16" /></td><td><input type="checkbox" data-slot="w2-thu-16" /></td></tr>
+              </tbody>
+            </table>
+
+            <!-- Week 3 -->
+            <div class="week-heading">
+              Week 3 <span class="badge">3rd week of month</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th class="time-col">Time</th><th>Monday</th><th>Thursday</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="time-label">9:00–10:00</td><td><input type="checkbox" data-slot="w3-mon-9" /></td><td><input type="checkbox" data-slot="w3-thu-9" /></td></tr>
+                <tr><td class="time-label">10:00–11:00</td><td><input type="checkbox" data-slot="w3-mon-10" /></td><td><input type="checkbox" data-slot="w3-thu-10" /></td></tr>
+                <tr><td class="time-label">11:00–12:00</td><td><input type="checkbox" data-slot="w3-mon-11" /></td><td><input type="checkbox" data-slot="w3-thu-11" /></td></tr>
+                <tr><td class="time-label">12:00–1:00</td><td><input type="checkbox" data-slot="w3-mon-12" /></td><td><input type="checkbox" data-slot="w3-thu-12" /></td></tr>
+                <tr><td class="time-label">1:00–2:00</td><td><input type="checkbox" data-slot="w3-mon-13" /></td><td><input type="checkbox" data-slot="w3-thu-13" /></td></tr>
+                <tr><td class="time-label">2:00–3:00</td><td><input type="checkbox" data-slot="w3-mon-14" /></td><td><input type="checkbox" data-slot="w3-thu-14" /></td></tr>
+                <tr><td class="time-label">3:00–4:00</td><td><input type="checkbox" data-slot="w3-mon-15" /></td><td><input type="checkbox" data-slot="w3-thu-15" /></td></tr>
+                <tr><td class="time-label">4:00–5:00</td><td><input type="checkbox" data-slot="w3-mon-16" /></td><td><input type="checkbox" data-slot="w3-thu-16" /></td></tr>
+              </tbody>
+            </table>
+
+            <!-- Week 4 -->
+            <div class="week-heading">
+              Week 4 <span class="badge">4th week of month</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th class="time-col">Time</th><th>Monday</th><th>Thursday</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="time-label">9:00–10:00</td><td><input type="checkbox" data-slot="w4-mon-9" /></td><td><input type="checkbox" data-slot="w4-thu-9" /></td></tr>
+                <tr><td class="time-label">10:00–11:00</td><td><input type="checkbox" data-slot="w4-mon-10" /></td><td><input type="checkbox" data-slot="w4-thu-10" /></td></tr>
+                <tr><td class="time-label">11:00–12:00</td><td><input type="checkbox" data-slot="w4-mon-11" /></td><td><input type="checkbox" data-slot="w4-thu-11" /></td></tr>
+                <tr><td class="time-label">12:00–1:00</td><td><input type="checkbox" data-slot="w4-mon-12" /></td><td><input type="checkbox" data-slot="w4-thu-12" /></td></tr>
+                <tr><td class="time-label">1:00–2:00</td><td><input type="checkbox" data-slot="w4-mon-13" /></td><td><input type="checkbox" data-slot="w4-thu-13" /></td></tr>
+                <tr><td class="time-label">2:00–3:00</td><td><input type="checkbox" data-slot="w4-mon-14" /></td><td><input type="checkbox" data-slot="w4-thu-14" /></td></tr>
+                <tr><td class="time-label">3:00–4:00</td><td><input type="checkbox" data-slot="w4-mon-15" /></td><td><input type="checkbox" data-slot="w4-thu-15" /></td></tr>
+                <tr><td class="time-label">4:00–5:00</td><td><input type="checkbox" data-slot="w4-mon-16" /></td><td><input type="checkbox" data-slot="w4-thu-16" /></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="btn-row">
+            <button type="submit" class="btn-primary" id="save-btn">💾 Save / update my availability</button>
+            <button type="button" class="btn-secondary btn-small" id="clear-btn">Clear all checkboxes</button>
+          </div>
+          <div id="status" class="status info"></div>
+        </form>
+
+        <hr style="margin:14px 0; border:none; border-top:1px dashed #e5e7eb;" />
+
+        <div class="card-header" style="margin-bottom:6px;">
+          <div class="card-title">
+            <span class="icon">👥</span>
+            Individual responses
+          </div>
+          <div class="hint">Latest entries first · for quick spot-checks.</div>
+        </div>
+        <div id="responses" class="responses-list">
+          <div class="hint">Waiting for data from Firestore...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon">📊</span>
+            Organizer view (summary)
+          </div>
+          <div class="hint">Counts per slot + CSV export.</div>
+        </div>
+
+        <div class="summary-card-inner">
+          <table class="summary-table" id="summary-table">
+            <thead>
+              <tr><th>Week</th><th>Day</th><th>Time</th><th># Available</th></tr>
+            </thead>
+            <tbody id="summary-body">
+              <tr><td colspan="4" class="hint">Waiting for responses...</td></tr>
+            </tbody>
+          </table>
+          <div class="summary-caption">
+            Darker cells = more people available in that slot.
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px;">
+          <button type="button" class="btn-secondary btn-small" id="export-btn">⬇ Export summary as CSV</button>
+          <span class="hint">Use this for BAAC planning docs, slides, or emails.</span>
+        </div>
+        <div id="summary-status" class="status info"></div>
+      </div>
+    </div>
+
+    <p class="footer-note">
+      BAAC Scheduler prototype · Uses Firestore collection <code>availabilities</code>.
+    </p>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6pQ_JW_4JmuitIa8KVoWPHPSyMtJCbas",
+      authDomain: "baac-meeting-scheduler.firebaseapp.com",
+      projectId: "baac-meeting-scheduler",
+      storageBucket: "baac-meeting-scheduler.firebasestorage.app",
+      messagingSenderId: "746672594936",
+      appId: "1:746672594936:web:a457b5e3186b80c54c000d",
+      measurementId: "G-JHPCVB4G0C"
+    };
+
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch (e) {
+      console.error("Firebase init error:", e);
+    }
+
+    const form = document.getElementById("availability-form");
+    const saveBtn = document.getElementById("save-btn");
+    const loadBtn = document.getElementById("load-btn");
+    const clearBtn = document.getElementById("clear-btn");
+    const exportBtn = document.getElementById("export-btn");
+    const statusEl = document.getElementById("status");
+    const responsesEl = document.getElementById("responses");
+    const summaryBody = document.getElementById("summary-body");
+    const summaryStatus = document.getElementById("summary-status");
+
+    const hoursMap = {
+      9: "9:00–10:00",
+      10: "10:00–11:00",
+      11: "11:00–12:00",
+      12: "12:00–1:00",
+      13: "1:00–2:00",
+      14: "2:00–3:00",
+      15: "3:00–4:00",
+      16: "4:00–5:00"
+    };
+    const dayLabel = { mon: "Monday", thu: "Thursday" };
+    const weekLabel = { 1: "Week 1", 2: "Week 2", 3: "Week 3", 4: "Week 4" };
+
+    function parseSlot(slot) {
+      const m = /^w(\d+)-(mon|thu)-(\d+)$/.exec(slot);
+      if (!m) return null;
+      return { week: parseInt(m[1], 10), dayKey: m[2], hour: parseInt(m[3], 10) };
+    }
+    function label(slot) {
+      const p = parseSlot(slot);
+      if (!p) return slot;
+      return (weekLabel[p.week] || "Week " + p.week) + " · " +
+             (dayLabel[p.dayKey] || p.dayKey) + " · " +
+             (hoursMap[p.hour] || (p.hour + ":00"));
+    }
+    function setStatus(msg, type) {
+      statusEl.textContent = msg;
+      statusEl.className = "status " + (type || "info");
+    }
+    function setSummaryStatus(msg, type) {
+      summaryStatus.textContent = msg;
+      summaryStatus.className = "status " + (type || "info");
+    }
+    function getAllSlotElements() {
+      return document.querySelectorAll("input[type='checkbox'][data-slot]");
+    }
+    function clearAllCheckboxes() {
+      getAllSlotElements().forEach(cb => cb.checked = false);
+    }
+
+    clearBtn.addEventListener("click", () => {
+      clearAllCheckboxes();
+      setStatus("All checkboxes cleared locally (not saved yet).", "info");
+    });
+
+    loadBtn.addEventListener("click", async () => {
+      if (!db) { setStatus("Firebase is not configured.", "error"); return; }
+      const name = document.getElementById("name").value.trim();
+      const email = (document.getElementById("email").value || "").trim();
+      if (!name) { setStatus("Enter your name (and email if used) before loading.", "error"); return; }
+
+      setStatus("Loading your last submission...", "info");
+      loadBtn.disabled = true;
+
+      try {
+        const snap = await db.collection("availabilities")
+          .where("name", "==", name)
+          .orderBy("createdAt", "desc")
+          .limit(5)
+          .get();
+        if (snap.empty) { setStatus("No previous submission found for that name.", "error"); loadBtn.disabled = false; return; }
+
+        let foundDoc = null;
+        snap.forEach(doc => {
+          const data = doc.data();
+          const storedEmail = (data.email || "").trim();
+          if (!email || storedEmail.toLowerCase() === email.toLowerCase()) {
+            if (!foundDoc) foundDoc = { id: doc.id, data };
+          }
+        });
+        if (!foundDoc) { setStatus("No matching submission found for that name + email.", "error"); loadBtn.disabled = false; return; }
+
+        clearAllCheckboxes();
+        const slots = Array.isArray(foundDoc.data.slots) ? foundDoc.data.slots : [];
+        const slotSet = new Set(slots);
+        getAllSlotElements().forEach(cb => {
+          const code = cb.getAttribute("data-slot");
+          cb.checked = slotSet.has(code);
+        });
+        setStatus("Loaded your last submission. Adjust and click Save / update to overwrite.", "ok");
+        loadBtn.disabled = false;
+      } catch (err) {
+        console.error(err);
+        setStatus("Error loading your submission. See console for details.", "error");
+        loadBtn.disabled = false;
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!db) { setStatus("Firebase is not configured.", "error"); return; }
+
+      const name = document.getElementById("name").value.trim();
+      const emailInput = document.getElementById("email").value || "";
+      const email = emailInput.trim();
+      if (!name) { setStatus("Please enter your name.", "error"); return; }
+
+      const checkboxes = getAllSlotElements();
+      const slots = [];
+      checkboxes.forEach(cb => { if (cb.checked) slots.push(cb.getAttribute("data-slot")); });
+      if (slots.length === 0) { setStatus("Select at least one time slot before saving.", "error"); return; }
+
+      saveBtn.disabled = true;
+      setStatus("Saving / updating your availability...", "info");
+
+      try {
+        let existingDoc = null;
+        const qSnap = await db.collection("availabilities")
+          .where("name", "==", name)
+          .orderBy("createdAt", "desc")
+          .limit(10)
+          .get();
+
+        qSnap.forEach(doc => {
+          const data = doc.data();
+          const storedEmail = (data.email || "").trim();
+          if (storedEmail.toLowerCase() === email.toLowerCase()) {
+            if (!existingDoc) existingDoc = doc;
+          }
+        });
+
+        const payload = {
+          name,
+          email: email || "",
+          slots,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (existingDoc) {
+          await existingDoc.ref.update(payload);
+          setStatus("Updated your existing availability entry.", "ok");
+        } else {
+          await db.collection("availabilities").add(payload);
+          setStatus("Saved a new availability entry.", "ok");
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("Error saving availability. See console for details.", "error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    if (db) {
+      db.collection("availabilities")
+        .orderBy("createdAt", "desc")
+        .onSnapshot((snapshot) => {
+          if (snapshot.empty) {
+            responsesEl.innerHTML = '<div class="hint">No responses yet.</div>';
+          } else {
+            let html = "";
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const name = data.name || "Unnamed";
+              const email = (data.email || "").trim();
+              const ts = data.createdAt ? data.createdAt.toDate().toLocaleString() : "Unknown time";
+              const slots = Array.isArray(data.slots) ? data.slots : [];
+              const prettySlots = slots.map(label).sort().join(", ");
+              html += '<div class="response-item">';
+              html += '  <div class="response-header">';
+              html += '    <span class="response-name">' + name + '</span>';
+              html += '    <span class="response-meta">' + ts + (email ? " · " + email : "") + '</span>';
+              html += '  </div>';
+              html += '  <div class="slots">' + (prettySlots || "<em>No slots</em>") + '</div>';
+              html += '</div>';
+            });
+            responsesEl.innerHTML = html;
+          }
+
+          const allSlotsOrdered = [];
+          for (let w = 1; w <= 4; w++) {
+            ["mon", "thu"].forEach(dayKey => {
+              [9,10,11,12,13,14,15,16].forEach(hour => {
+                allSlotsOrdered.push({ slot: "w" + w + "-" + dayKey + "-" + hour, week: w, dayKey, hour });
+              });
+            });
+          }
+          const counts = {};
+          allSlotsOrdered.forEach(s => counts[s.slot] = 0);
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const slots = Array.isArray(data.slots) ? data.slots : [];
+            slots.forEach(code => { if (counts.hasOwnProperty(code)) counts[code] += 1; });
+          });
+          const maxCount = Object.values(counts).reduce((m, v) => Math.max(m, v), 0);
+
+          let sHtml = "";
+          allSlotsOrdered.forEach(item => {
+            const c = counts[item.slot] || 0;
+            let bg = "#ffffff";
+            let color = "#111827";
+            if (maxCount > 0 && c > 0) {
+              const ratio = c / maxCount;
+              const lightness = 96 - Math.floor(ratio * 30);
+              bg = "hsl(220, 90%," + lightness + "%)";
+              color = lightness < 78 ? "#f9fafb" : "#111827";
+            }
+            sHtml += "<tr>";
+            sHtml += "<td>" + (weekLabel[item.week] || ("Week " + item.week)) + "</td>";
+            sHtml += "<td>" + (dayLabel[item.dayKey] || item.dayKey) + "</td>";
+            sHtml += '<td>' + (hoursMap[item.hour] || (item.hour + ":00")) + "</td>";
+            sHtml += '<td class="heat-cell" style="background:' + bg + '; color:' + color + ';">' + c + "</td>";
+            sHtml += "</tr>";
+          });
+          summaryBody.innerHTML = sHtml;
+          setSummaryStatus("Summary updated from " + snapshot.size + " entries.", "ok");
+        }, (err) => {
+          console.error("Snapshot error:", err);
+          responsesEl.innerHTML = '<div class="hint">Error loading responses. Check console for details.</div>';
+          summaryBody.innerHTML = '<tr><td colspan="4" class="hint">Error loading summary.</td></tr>';
+          setSummaryStatus("Error reading from Firestore.", "error");
+        });
+    } else {
+      setStatus("Firebase is not configured correctly.", "error");
+      setSummaryStatus("Firebase not available.", "error");
+    }
+
+    exportBtn.addEventListener("click", () => {
+      const rows = [];
+      rows.push(["Week", "Day", "Time", "Count"]);
+      const bodyRows = summaryBody.querySelectorAll("tr");
+      if (!bodyRows.length) {
+        setSummaryStatus("No summary rows to export yet.", "error");
+        return;
+      }
+      bodyRows.forEach(tr => {
+        const cells = tr.querySelectorAll("td");
+        if (cells.length === 4) {
+          const r = [];
+          cells.forEach(td => r.push(td.textContent.trim()));
+          rows.push(r);
+        }
+      });
+      const csv = rows.map(r => r.map(v => '"' + v.replace(/"/g, '""') + '"').join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "baac_availability_summary.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setSummaryStatus("Exported summary as CSV.", "ok");
+    });
+  </script>
+</body>
 </html>
